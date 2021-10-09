@@ -985,3 +985,15 @@ def test_builtin_putrest(args, assert)
 
   assert_function_error_with_argument_counts! zil_context, :PUTREST, [0, 1, 3]
 end
+
+def test_builtin_global(args, assert)
+  zil_context = build_zil_context(args)
+
+  # <GLOBAL PLAYER <>>
+  result = call_routine zil_context, :GLOBAL, [:PLAYER, form]
+
+  assert.equal! result, false
+  assert.equal! zil_context.globals[:PLAYER], false
+
+  assert_function_error_with_argument_counts! zil_context, :GLOBAL, [0, 1, 3]
+end
