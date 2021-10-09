@@ -148,6 +148,8 @@ ZIL_BUILTINS[:SETG] = define_for_evaled_arguments { |arguments, context|
 
 ZIL_BUILTINS[:GLOBAL] = ZIL_BUILTINS[:SETG]
 
+ZIL_BUILTINS[:CONSTANT] = ZIL_BUILTINS[:SETG]
+
 ZIL_BUILTINS[:BAND] = define_for_evaled_arguments { |arguments|
   expect_argument_count!(arguments, 2)
   arguments[0] & arguments[1]

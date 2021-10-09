@@ -997,3 +997,15 @@ def test_builtin_global(args, assert)
 
   assert_function_error_with_argument_counts! zil_context, :GLOBAL, [0, 1, 3]
 end
+
+def test_builtin_constant(args, assert)
+  zil_context = build_zil_context(args)
+
+  # <CONSTANT C-TICK 1>
+  result = call_routine zil_context, :CONSTANT, [:"C-TICK", 1]
+
+  assert.equal! result, 1
+  assert.equal! zil_context.globals[:"C-TICK"], 1
+
+  assert_function_error_with_argument_counts! zil_context, :CONSTANT, [0, 1, 3]
+end
