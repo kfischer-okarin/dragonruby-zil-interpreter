@@ -766,7 +766,7 @@ def test_builtin_get(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.locals[:THETABLE] = [1, 0, 2, 0, 3, 0]
-  # <GET ,THETABLE 2>
+  # <GET .THETABLE 2>
   result = call_routine zil_context, :GET, [form(:LVAL, :THETABLE), 2]
 
   assert.equal! result, 3
@@ -778,7 +778,7 @@ def test_builtin_put(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.locals[:THETABLE] = [1, 0, 2, 0, 3, 0]
-  # <PUT ,THETABLE 1 99>
+  # <PUT .THETABLE 1 99>
   result = call_routine zil_context, :PUT, [form(:LVAL, :THETABLE), 1, 99]
 
   assert.equal! result, [1, 0, 99, 0, 3, 0]
@@ -791,7 +791,7 @@ def test_builtin_getb(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.locals[:THETABLE] = [1, 2, 3]
-  # <GETB ,THETABLE 2>
+  # <GETB .THETABLE 2>
   result = call_routine zil_context, :GETB, [form(:LVAL, :THETABLE), 2]
 
   assert.equal! result, 3
@@ -803,7 +803,7 @@ def test_builtin_putb(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.locals[:THETABLE] = [1, 2, 3]
-  # <PUTB ,THETABLE 1 99>
+  # <PUTB .THETABLE 1 99>
   result = call_routine zil_context, :PUTB, [form(:LVAL, :THETABLE), 1, 99]
 
   assert.equal! result, [1, 99, 3]
@@ -816,7 +816,7 @@ def test_builtin_nth(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.locals[:THETABLE] = [1, 2, 3]
-  # <NTH ,THETABLE 2>
+  # <NTH .THETABLE 2>
   result = call_routine zil_context, :NTH, [form(:LVAL, :THETABLE), 2]
 
   assert.equal! result, 2
@@ -829,20 +829,20 @@ def test_builtin_rest(args, assert)
 
   zil_context.locals[:THETABLE] = [1, 2, 3, 4, 5]
 
-  # <PUTB <REST ,THETABLE 2> 1 99>
+  # <PUTB <REST .THETABLE 2> 1 99>
   result = call_routine zil_context, :PUTB, [form(:REST, form(:LVAL, :THETABLE), 2), 1, 99]
 
   assert.equal! result.to_a, [3, 99, 5]
   assert.equal! zil_context.locals[:THETABLE], [1, 2, 3, 99, 5]
 
-  # <GETB <REST ,THETABLE 2> 2>
+  # <GETB <REST .THETABLE 2> 2>
   result = call_routine zil_context, :GETB, [form(:REST, form(:LVAL, :THETABLE), 2), 2]
 
   assert.equal! result, 5
 
   zil_context.locals[:THETABLE] = [1, 2, 3, 4, 5]
 
-  # <PUTB <REST <REST ,THETABLE 2>> 1 100>
+  # <PUTB <REST <REST .THETABLE 2>> 1 100>
   result = call_routine zil_context, :PUTB, [
     form(:REST, form(:REST, form(:LVAL, :THETABLE), 2)),
     1,
@@ -852,7 +852,7 @@ def test_builtin_rest(args, assert)
   assert.equal! result.to_a, [4, 100]
   assert.equal! zil_context.locals[:THETABLE], [1, 2, 3, 4, 100]
 
-  # <GETB <REST <REST ,THETABLE> 2> 0>
+  # <GETB <REST <REST .THETABLE> 2> 0>
   result = call_routine zil_context, :GETB, [
     form(:REST, form(:REST, form(:LVAL, :THETABLE)), 2),
     0
@@ -860,12 +860,12 @@ def test_builtin_rest(args, assert)
 
   assert.equal! result, 4
 
-  # <REST ,THETABLE 5>
+  # <REST .THETABLE 5>
   result = call_routine zil_context, :REST, [form(:LVAL, :THETABLE), 5]
 
   assert.equal! result.to_a, []
 
-  # <REST ,THETABLE 6>
+  # <REST .THETABLE 6>
   call_routine zil_context, :REST, [form(:LVAL, :THETABLE), 6]
   raise 'No FunctionError was raised when RESTing past last element'
 rescue FunctionError
@@ -879,7 +879,7 @@ def test_builtin_back(args, assert)
 
   zil_context.locals[:THETABLE] = [1, 2, 3, 4, 5]
 
-  # <PUTB <BACK <REST ,THETABLE 2>> 1 99>
+  # <PUTB <BACK <REST .THETABLE 2>> 1 99>
   result = call_routine zil_context, :PUTB, [
     form(:BACK, form(:REST, form(:LVAL, :THETABLE), 2)),
     1,
@@ -889,7 +889,7 @@ def test_builtin_back(args, assert)
   assert.equal! result.to_a, [2, 99, 4, 5]
   assert.equal! zil_context.locals[:THETABLE], [1, 2, 99, 4, 5]
 
-  # <GETB <BACK <REST ,THETABLE 2> 2> 2>
+  # <GETB <BACK <REST .THETABLE 2> 2> 2>
   result = call_routine zil_context, :GETB, [
     form(:BACK, form(:REST, form(:LVAL, :THETABLE), 2), 2),
     1
@@ -911,12 +911,12 @@ def test_builtin_empty(args, assert)
   zil_context.locals[:EMPTYTABLE] = []
   zil_context.locals[:NONEMPTYTABLE] = [1]
 
-  # <EMPTY? ,EMPTYTABLE>
+  # <EMPTY? .EMPTYTABLE>
   result = call_routine zil_context, :EMPTY?, [form(:LVAL, :EMPTYTABLE)]
 
   assert.true! result
 
-  # <EMPTY? ,NONEMPTYTABLE>
+  # <EMPTY? .NONEMPTYTABLE>
   result = call_routine zil_context, :EMPTY?, [form(:LVAL, :NONEMPTYTABLE)]
 
   assert.false! result
@@ -929,12 +929,12 @@ def test_builtin_length(args, assert)
 
   zil_context.locals[:SOMETABLE] = [3, 7, 12]
 
-  # <LENGTH ,SOMETABLE>
+  # <LENGTH .SOMETABLE>
   result = call_routine zil_context, :LENGTH, [form(:LVAL, :SOMETABLE)]
 
   assert.equal! result, 3
 
-  # <LENGTH <REST ,SOMETABLE>>
+  # <LENGTH <REST .SOMETABLE>>
   result = call_routine zil_context, :LENGTH, [form(:REST, form(:LVAL, :SOMETABLE))]
 
   assert.equal! result, 2
@@ -947,12 +947,12 @@ def test_builtin_length_less_than_or_equal(args, assert)
 
   zil_context.locals[:SOMETABLE] = [3, 7, 12]
 
-  # <LENGTH? ,SOMETABLE 3>
+  # <LENGTH? .SOMETABLE 3>
   result = call_routine zil_context, :LENGTH?, [form(:LVAL, :SOMETABLE), 3]
 
   assert.true! result
 
-  # <LENGTH? ,SOMETABLE 2>
+  # <LENGTH? .SOMETABLE 2>
   result = call_routine zil_context, :LENGTH?, [form(:LVAL, :SOMETABLE), 2]
 
   assert.false! result
@@ -965,19 +965,19 @@ def test_builtin_putrest(args, assert)
 
   zil_context.locals[:THETABLE] = [1, 2, 3, 4, 5]
 
-  # <PUTREST ,THETABLE (1 1 1)>
+  # <PUTREST .THETABLE (1 1 1)>
   result = call_routine zil_context, :PUTREST, [form(:LVAL, :THETABLE), list(1, 1, 1)]
 
   assert.equal! result.to_a, [1, 1, 1, 1]
   assert.equal! zil_context.locals[:THETABLE], [1, 1, 1, 1]
 
-  # <PUTREST <REST ,THETABLE> (99 98)>
+  # <PUTREST <REST .THETABLE> (99 98)>
   result = call_routine zil_context, :PUTREST, [form(:REST, form(:LVAL, :THETABLE)), list(99, 98)]
 
   assert.equal! result.to_a, [1, 99, 98]
   assert.equal! zil_context.locals[:THETABLE], [1, 1, 99, 98]
 
-  # <PUTREST <REST ,THETABLE 3> (50)>
+  # <PUTREST <REST .THETABLE 3> (50)>
   result = call_routine zil_context, :PUTREST, [form(:REST, form(:LVAL, :THETABLE), 3), list(50)]
 
   assert.equal! result.to_a, [98, 50]
