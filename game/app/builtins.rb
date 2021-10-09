@@ -467,3 +467,19 @@ ZIL_BUILTINS[:GASSIGNED?] = lambda { |arguments, context|
   context.globals.key? var_atom
 }
 
+ZIL_BUILTINS[:"==?"] = define_for_evaled_arguments { |arguments|
+  expect_argument_count! arguments, 2
+
+  left, right = arguments
+
+  if left.is_a? ZIL::ArrayWithOffset
+    next right.is_a?(ZIL::ArrayWithOffset) && left.original_array.equal?(right.original_array) &&
+      left.offset == right.offset
+  end
+
+  left.equal? right
+}
+
+ZIL_BUILTINS[:"N==?"] = lambda { |arguments, context|
+  !ZIL_BUILTINS[:"==?"].call(arguments, context)
+}

@@ -1009,3 +1009,65 @@ def test_builtin_constant(args, assert)
 
   assert_function_error_with_argument_counts! zil_context, :CONSTANT, [0, 1, 3]
 end
+
+def test_builtin_equal(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.locals[:THELIST] = [1, 2, 3]
+
+  # <==? 4 4>
+  result = call_routine zil_context, :"==?", [4, 4]
+
+  assert.true! result, 'Same values should be equal'
+
+  # <==? .THELIST .THELIST>
+  result = call_routine zil_context, :"==?", [form(:LVAL, :THELIST), form(:LVAL, :THELIST)]
+
+  assert.true! result, 'Same structured objects should be equal'
+
+  # <==? .THELIST (1 2 3)>
+  result = call_routine zil_context, :"==?", [form(:LVAL, :THELIST), list(1, 2, 3)]
+
+  assert.false! result, 'Different structured objects with same content should not be equal'
+
+  # <==? <REST .THELIST> <REST .THELIST>>
+  result = call_routine zil_context, :"==?", [
+    form(:REST, form(:LVAL, :THELIST)),
+    form(:REST, form(:LVAL, :THELIST))
+  ]
+
+  assert.true! result, 'REST of same list with same offset should be equal'
+
+  assert_function_error_with_argument_counts! zil_context, :"==?", [0, 1, 3]
+end
+
+def test_builtin_not_equal(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.locals[:THELIST] = [1, 2, 3]
+
+  # <N==? 4 4>
+  result = call_routine zil_context, :"N==?", [4, 4]
+
+  assert.false! result, 'Same values should return false'
+
+  # <N==? .THELIST .THELIST>
+  result = call_routine zil_context, :"N==?", [form(:LVAL, :THELIST), form(:LVAL, :THELIST)]
+
+  assert.false! result, 'Same structured objects should return false'
+
+  # <N==? .THELIST (1 2 3)>
+  result = call_routine zil_context, :"N==?", [form(:LVAL, :THELIST), list(1, 2, 3)]
+
+  assert.true! result, 'Different structured objects with same content should return true'
+
+  # <N==? <REST .THELIST> <REST .THELIST>>
+  result = call_routine zil_context, :"N==?", [
+    form(:REST, form(:LVAL, :THELIST)),
+    form(:REST, form(:LVAL, :THELIST))
+  ]
+
+  assert.false! result, 'REST of same list with same offset should return false'
+
+  assert_function_error_with_argument_counts! zil_context, :"N==?", [0, 1, 3]
+end
