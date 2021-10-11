@@ -286,15 +286,21 @@ ZIL_BUILTINS[:OBJECT] = define_for_evaled_arguments { |arguments, context|
 
   object_name, *object_properties = arguments
 
-  object = { properties: {} }
-  object[:name] = object_name
+  object = {
+    name: object_name,
+    properties: {}
+  }
 
   object_properties.each do |property|
-    raise FunctionError, "OBJECT properties require a name and values!" unless property.length > 1
+    raise FunctionError, 'OBJECT properties require a name and values!' unless property.length > 1
 
     property_name, *property_values = property
 
-    object[:properties][property_name] = property_values.length == 1 ? property_values[0] : property_values
+    if property_name == :IN && property_values[0] != :TO
+      object[:location] = property_values[0]
+    else
+      object[:properties][property_name] = property_values.length == 1 ? property_values[0] : property_values
+    end
   end
 
   context.globals[object_name] = object

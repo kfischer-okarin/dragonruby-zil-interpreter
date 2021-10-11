@@ -697,11 +697,23 @@ end
 def test_builtin_object(args, assert)
   zil_context = build_zil_context(args)
 
-  # <OBJECT ROOM (HEIGHT 10)>
-  specs = [:ROOM, list(:HEIGHT, 10)]
-  result = call_routine zil_context, :OBJECT, specs
-  assert.equal! zil_context.globals[:ROOM][:name], :ROOM, "Object's name should be ROOM"
-  assert.equal! zil_context.globals[:ROOM][:properties][:HEIGHT], 10, "ROOM's HEIGHT should be 10"
+  # <OBJECT ROOM (IN HOUSE) (HEIGHT 10) (FLAGS A B) (IN TO BASEMENT)>
+  call_routine zil_context, :OBJECT, [
+    :ROOM,
+    list(:IN, :HOUSE),
+    list(:HEIGHT, 10),
+    list(:FLAGS, :A, :B),
+    list(:IN, :TO, :BASEMENT)
+  ]
+  assert.equal! zil_context.globals[:ROOM], {
+    name: :ROOM,
+    location: :HOUSE,
+    properties: {
+      HEIGHT: 10,
+      FLAGS: [:A, :B],
+      IN: [:TO, :BASEMENT]
+    }
+  }
 end
 
 def test_builtin_itable(args, assert)
