@@ -489,3 +489,11 @@ ZIL_BUILTINS[:"==?"] = define_for_evaled_arguments { |arguments|
 ZIL_BUILTINS[:"N==?"] = lambda { |arguments, context|
   !ZIL_BUILTINS[:"==?"].call(arguments, context)
 }
+
+ZIL_BUILTINS[:LOC] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count! arguments, 1
+
+  object = arguments[0]
+
+  context.globals[object[:location]]
+}

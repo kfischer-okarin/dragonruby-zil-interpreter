@@ -1083,3 +1083,26 @@ def test_builtin_not_equal(args, assert)
 
   assert_function_error_with_argument_counts! zil_context, :"N==?", [0, 1, 3]
 end
+
+def test_builtin_loc(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.globals[:CHEST] = {
+    name: 'CHEST',
+    location: :ROOM,
+    properties: {}
+  }
+
+  zil_context.globals[:KEY] = {
+    name: 'KEY',
+    location: :CHEST,
+    properties: {}
+  }
+
+  # <LOC ,KEY>
+  result = call_routine zil_context, :LOC, [form(:GVAL, :KEY)]
+
+  assert.equal! result, zil_context.globals[:CHEST], 'Location should be CHEST object'
+
+  assert_function_error_with_argument_counts! zil_context, :LOC, [0, 2]
+end
