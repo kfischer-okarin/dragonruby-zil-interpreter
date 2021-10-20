@@ -497,3 +497,12 @@ ZIL_BUILTINS[:LOC] = define_for_evaled_arguments { |arguments, context|
 
   context.globals[object[:location]]
 }
+
+ZIL_BUILTINS[:IN?] = lambda { |arguments, context|
+  expect_argument_count! arguments, 2
+
+  object = arguments[0]
+  container = eval_zil(arguments[1], context)
+
+  ZIL_BUILTINS[:LOC].call([object], context) == container
+}

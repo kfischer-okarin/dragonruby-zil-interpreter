@@ -1106,3 +1106,26 @@ def test_builtin_loc(args, assert)
 
   assert_function_error_with_argument_counts! zil_context, :LOC, [0, 2]
 end
+
+def test_builtin_in(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.globals[:CHEST] = {
+    name: 'CHEST',
+    location: :ROOM,
+    properties: {}
+  }
+
+  zil_context.globals[:KEY] = {
+    name: 'KEY',
+    location: :CHEST,
+    properties: {}
+  }
+
+  # <IN? ,KEY ,CHEST>
+  result = call_routine zil_context, :IN?, [form(:GVAL, :KEY), form(:GVAL, :CHEST)]
+
+  assert.true! result, 'KEY should be in CHEST'
+
+  assert_function_error_with_argument_counts! zil_context, :IN?, [0, 1, 3]
+end
