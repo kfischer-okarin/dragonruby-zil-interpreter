@@ -705,6 +705,7 @@ def test_builtin_object(args, assert)
     list(:FLAGS, :A, :B),
     list(:IN, :TO, :BASEMENT)
   ]
+
   assert.equal! zil_context.globals[:ROOM], {
     name: :ROOM,
     location: :HOUSE,
@@ -714,6 +715,9 @@ def test_builtin_object(args, assert)
       IN: [:TO, :BASEMENT]
     }
   }
+
+  assert.equal! zil_context.globals[:A], :A, 'Did not set used flag A as global variable'
+  assert.equal! zil_context.globals[:B], :B, 'Did not set used flag B as global variable'
 end
 
 def test_builtin_itable(args, assert)

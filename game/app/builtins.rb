@@ -303,6 +303,16 @@ ZIL_BUILTINS[:OBJECT] = define_for_evaled_arguments { |arguments, context|
     end
   end
 
+  if object[:properties].key? :FLAGS
+    object[:properties][:FLAGS].each do |flag|
+      # Set global variable named like the flag to the symbol named like the flag
+      # Since flags are checked/set via GVAL/, those global variables must be set
+      # And since the flags are just stored as the symbols themselves, the value of the global var
+      # representing the flag must also be the same symbol
+      context.globals[flag] = flag
+    end
+  end
+
   context.globals[object_name] = object
 }
 
