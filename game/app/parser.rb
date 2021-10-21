@@ -22,19 +22,26 @@ class Parser
     raise ParserError, e.to_s
   end
 
+  def self.parse_file(filename)
+    parser = new
+    parser.parse_file(filename)
+    parser.expressions
+  rescue RuntimeError => e
+    raise ParserError, e.to_s
+  end
+
   def initialize
     @expressions = []
     @debug_name = "BUFFER"
     @log_flag = true
   end
 
-  def parse_file(work_dir, file_name)
-    @work_dir = work_dir # not sure if we need work_dir, the idea was to follow INSERT-FILEs inside the parser/scanner
-    @debug_name = file_name
+  def parse_file(filename)
+    @debug_name = filename
 
-    log "Opening '" + file_name + "' ..." if @log_flag
-    buffer = $gtk.read_file(@work_dir + file_name)
-    raise "Empty/Missing file! (#{@work_dir}#{file_name})" if buffer.nil? || buffer.length == 0
+    log "Opening '" + filename + "' ..." if @log_flag
+    buffer = $gtk.read_file(filename)
+    raise "Empty/Missing file! (#{filename})" if buffer.nil? || buffer.length == 0
     parse_string(buffer)
   end
 
