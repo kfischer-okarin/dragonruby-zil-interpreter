@@ -288,7 +288,9 @@ ZIL_BUILTINS[:OBJECT] = define_for_evaled_arguments { |arguments, context|
 
   object = {
     name: object_name,
-    properties: {}
+    properties: {
+      FLAGS: []
+    }
   }
 
   object_properties.each do |property|
@@ -523,7 +525,6 @@ ZIL_BUILTINS[:FSET] = define_for_evaled_arguments { |arguments, context|
   object, flag = arguments
 
   properties = object[:properties]
-  properties[:FLAGS] ||= []
   properties[:FLAGS] << flag unless properties[:FLAGS].include? flag
 }
 
@@ -533,6 +534,5 @@ ZIL_BUILTINS[:FCLEAR] = define_for_evaled_arguments { |arguments, context|
   object, flag = arguments
 
   properties = object[:properties]
-  properties[:FLAGS] ||= []
   properties[:FLAGS].delete flag
 }

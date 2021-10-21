@@ -718,6 +718,16 @@ def test_builtin_object(args, assert)
 
   assert.equal! zil_context.globals[:A], :A, 'Did not set used flag A as global variable'
   assert.equal! zil_context.globals[:B], :B, 'Did not set used flag B as global variable'
+
+  # <OBJECT HOUSE>
+  call_routine zil_context, :OBJECT, [:HOUSE]
+
+  assert.equal! zil_context.globals[:HOUSE], {
+    name: :HOUSE,
+    properties: {
+      FLAGS: []
+    }
+  }
 end
 
 def test_builtin_itable(args, assert)
@@ -1141,7 +1151,9 @@ def test_builtin_fset(args, assert)
   zil_context.globals[:AXE] = {
     name: :AXE,
     location: :TROLL,
-    properties: {}
+    properties: {
+      FLAGS: []
+    }
   }
 
   # <FSET ,AXE ,WEAPONBIT>
