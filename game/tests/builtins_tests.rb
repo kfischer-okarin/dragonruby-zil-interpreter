@@ -1156,3 +1156,28 @@ def test_builtin_fset(args, assert)
 
   assert_function_error_with_argument_counts! zil_context, :FSET, [0, 1, 3]
 end
+
+def test_builtin_fclear(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.globals[:WEAPONBIT] = :WEAPONBIT
+  zil_context.globals[:AXE] = {
+    name: :AXE,
+    location: :TROLL,
+    properties: {
+      FLAGS: [:WEAPONBIT, :TAKEBIT]
+    }
+  }
+
+  # <FCLEAR ,AXE ,WEAPONBIT>
+  call_routine zil_context, :FCLEAR, [form(:GVAL, :AXE), form(:GVAL, :WEAPONBIT)]
+
+  assert.equal! zil_context.globals[:AXE][:properties][:FLAGS], [:TAKEBIT], 'AXE flags should not contain WEAPONBIT'
+
+  # Second time does not do anything
+  call_routine zil_context, :FCLEAR, [form(:GVAL, :AXE), form(:GVAL, :WEAPONBIT)]
+
+  assert.equal! zil_context.globals[:AXE][:properties][:FLAGS], [:TAKEBIT], 'AXE flags should not change'
+
+  assert_function_error_with_argument_counts! zil_context, :FCLEAR, [0, 1, 3]
+end
