@@ -1219,3 +1219,16 @@ def test_builtin_fset_check(args, assert)
 
   assert_function_error_with_argument_counts! zil_context, :FSET?, [0, 1, 3]
 end
+
+def test_builtin_insert_file(args, assert)
+  zil_context = build_zil_context(args)
+  zil_context.parser_work_dir = 'tests/'
+
+  # <INSERT-FILE "TESTSCRIPT" T>
+  call_routine zil_context, :"INSERT-FILE", ['TESTSCRIPT', true]
+
+  assert.true! zil_context.globals[:"TEST-ADD-TWELVE"].is_a?(Method), 'Global var TEST-ADD-TWELVE should contain a routine'
+  assert.equal! zil_context.globals[:"TEST-ADD-RESULT"], 42, 'Expected global var TEST-ADD-RESULT to have value 42'
+
+  assert_function_error_with_argument_counts! zil_context, :"INSERT-FILE", [0, 3]
+end

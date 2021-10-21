@@ -544,3 +544,14 @@ ZIL_BUILTINS[:FSET?] = define_for_evaled_arguments { |arguments, context|
 
   object[:properties][:FLAGS].include? flag
 }
+
+ZIL_BUILTINS[:"INSERT-FILE"] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count_in_range! arguments, (1..2)
+
+  filename = arguments[0]
+
+  parsed = Parser.parse_file "#{context.parser_work_dir}#{filename.downcase}.zil"
+  parsed.each do |expression|
+    eval_zil expression, context
+  end
+}

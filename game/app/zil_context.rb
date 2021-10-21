@@ -5,7 +5,8 @@ def build_zil_context(args)
     locals: {},
     locals_stack: [],
     call_stack: [],
-    outputs: []
+    outputs: [],
+    parser_work_dir: ''
   )
 end
 
