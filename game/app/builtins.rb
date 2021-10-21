@@ -486,16 +486,18 @@ ZIL_BUILTINS[:GASSIGNED?] = lambda { |arguments, context|
 }
 
 ZIL_BUILTINS[:"==?"] = define_for_evaled_arguments { |arguments|
-  expect_argument_count! arguments, 2
+  expect_minimum_argument_count! arguments, 2
 
-  left, right = arguments
+  left, *others = arguments
 
-  if left.is_a? ZIL::ArrayWithOffset
-    next right.is_a?(ZIL::ArrayWithOffset) && left.original_array.equal?(right.original_array) &&
-      left.offset == right.offset
-  end
+  others.any? { |right|
+    if left.is_a? ZIL::ArrayWithOffset
+      next right.is_a?(ZIL::ArrayWithOffset) && left.original_array.equal?(right.original_array) &&
+        left.offset == right.offset
+    end
 
-  left.equal? right
+    left.equal? right
+  }
 }
 
 ZIL_BUILTINS[:"N==?"] = lambda { |arguments, context|

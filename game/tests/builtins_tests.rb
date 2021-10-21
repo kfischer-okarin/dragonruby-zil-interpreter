@@ -1064,7 +1064,12 @@ def test_builtin_equal(args, assert)
 
   assert.true! result, 'REST of same list with same offset should be equal'
 
-  assert_function_error_with_argument_counts! zil_context, :"==?", [0, 1, 3]
+  # <==? 4 5 4>
+  result = call_routine zil_context, :"==?", [4, 5, 4]
+
+  assert.true! result, 'Should return true since first argument is equal to one of the other arguments'
+
+  assert_function_error_with_argument_counts! zil_context, :"==?", [0, 1]
 end
 
 def test_builtin_not_equal(args, assert)
@@ -1095,7 +1100,12 @@ def test_builtin_not_equal(args, assert)
 
   assert.false! result, 'REST of same list with same offset should return false'
 
-  assert_function_error_with_argument_counts! zil_context, :"N==?", [0, 1, 3]
+  # <N==? 4 5 4>
+  result = call_routine zil_context, :"N==?", [4, 5, 4]
+
+  assert.false! result, 'Should return false since first argument is equal to one of the other arguments'
+
+  assert_function_error_with_argument_counts! zil_context, :"N==?", [0, 1]
 end
 
 def test_builtin_loc(args, assert)
