@@ -1092,13 +1092,13 @@ def test_builtin_loc(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.globals[:CHEST] = {
-    name: 'CHEST',
+    name: :CHEST,
     location: :ROOM,
     properties: {}
   }
 
   zil_context.globals[:KEY] = {
-    name: 'KEY',
+    name: :KEY,
     location: :CHEST,
     properties: {}
   }
@@ -1115,13 +1115,13 @@ def test_builtin_in(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.globals[:CHEST] = {
-    name: 'CHEST',
+    name: :CHEST,
     location: :ROOM,
     properties: {}
   }
 
   zil_context.globals[:KEY] = {
-    name: 'KEY',
+    name: :KEY,
     location: :CHEST,
     properties: {}
   }
