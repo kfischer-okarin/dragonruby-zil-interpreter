@@ -516,3 +516,13 @@ ZIL_BUILTINS[:IN?] = lambda { |arguments, context|
 
   ZIL_BUILTINS[:LOC].call([object], context) == container
 }
+
+ZIL_BUILTINS[:FSET] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count! arguments, 2
+
+  object, flag = arguments
+
+  properties = object[:properties]
+  properties[:FLAGS] ||= []
+  properties[:FLAGS] << flag unless properties[:FLAGS].include? flag
+}

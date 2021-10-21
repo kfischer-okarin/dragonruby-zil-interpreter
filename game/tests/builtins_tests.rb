@@ -1133,3 +1133,26 @@ def test_builtin_in(args, assert)
 
   assert_function_error_with_argument_counts! zil_context, :IN?, [0, 1, 3]
 end
+
+def test_builtin_fset(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.globals[:WEAPONBIT] = :WEAPONBIT
+  zil_context.globals[:AXE] = {
+    name: :AXE,
+    location: :TROLL,
+    properties: {}
+  }
+
+  # <FSET ,AXE ,WEAPONBIT>
+  call_routine zil_context, :FSET, [form(:GVAL, :AXE), form(:GVAL, :WEAPONBIT)]
+
+  assert.equal! zil_context.globals[:AXE][:properties][:FLAGS], [:WEAPONBIT], 'AXE flags should contain WEAPONBIT'
+
+  # Second time does not add it again
+  call_routine zil_context, :FSET, [form(:GVAL, :AXE), form(:GVAL, :WEAPONBIT)]
+
+  assert.equal! zil_context.globals[:AXE][:properties][:FLAGS], [:WEAPONBIT], 'AXE flags should contain only one WEAPONBIT'
+
+  assert_function_error_with_argument_counts! zil_context, :FSET, [0, 1, 3]
+end
