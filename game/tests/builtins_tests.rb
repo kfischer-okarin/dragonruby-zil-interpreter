@@ -1193,3 +1193,29 @@ def test_builtin_fclear(args, assert)
 
   assert_function_error_with_argument_counts! zil_context, :FCLEAR, [0, 1, 3]
 end
+
+def test_builtin_fset_check(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.globals[:WEAPONBIT] = :WEAPONBIT
+  zil_context.globals[:FOODBIT] = :FOODBIT
+  zil_context.globals[:AXE] = {
+    name: :AXE,
+    location: :TROLL,
+    properties: {
+      FLAGS: [:WEAPONBIT]
+    }
+  }
+
+  # <FSET? ,AXE ,WEAPONBIT>
+  result = call_routine zil_context, :FSET?, [form(:GVAL, :AXE), form(:GVAL, :WEAPONBIT)]
+
+  assert.true! result, 'Should return true since flag is set'
+
+  # <FSET? ,AXE ,FOODBIT>
+  result = call_routine zil_context, :FSET?, [form(:GVAL, :AXE), form(:GVAL, :FOODBIT)]
+
+  assert.false! result, 'Should return false since flag is not set'
+
+  assert_function_error_with_argument_counts! zil_context, :FSET?, [0, 1, 3]
+end

@@ -536,3 +536,11 @@ ZIL_BUILTINS[:FCLEAR] = define_for_evaled_arguments { |arguments, context|
   properties = object[:properties]
   properties[:FLAGS].delete flag
 }
+
+ZIL_BUILTINS[:FSET?] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count! arguments, 2
+
+  object, flag = arguments
+
+  object[:properties][:FLAGS].include? flag
+}
