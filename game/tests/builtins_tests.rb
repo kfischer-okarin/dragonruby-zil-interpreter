@@ -1072,6 +1072,17 @@ def test_builtin_equal(args, assert)
   assert_function_error_with_argument_counts! zil_context, :"==?", [0, 1]
 end
 
+def test_builtin_equal_alternative(args, assert)
+  zil_context = build_zil_context(args)
+
+  # <EQUAL? 4 4>
+  result = call_routine zil_context, :EQUAL?, [4, 4]
+
+  assert.true! result, 'Same values should be equal'
+
+  assert_function_error_with_argument_counts! zil_context, :EQUAL?, [0, 1]
+end
+
 def test_builtin_not_equal(args, assert)
   zil_context = build_zil_context(args)
 

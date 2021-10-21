@@ -500,6 +500,8 @@ ZIL_BUILTINS[:"==?"] = define_for_evaled_arguments { |arguments|
   }
 }
 
+ZIL_BUILTINS[:EQUAL?] = ZIL_BUILTINS[:"==?"]
+
 ZIL_BUILTINS[:"N==?"] = lambda { |arguments, context|
   !ZIL_BUILTINS[:"==?"].call(arguments, context)
 }
