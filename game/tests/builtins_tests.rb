@@ -1253,3 +1253,22 @@ def test_builtin_insert_file(args, assert)
 
   assert_function_error_with_argument_counts! zil_context, :"INSERT-FILE", [0, 3]
 end
+
+def test_builtin_igrtr(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.locals[:X] = 99
+
+  # <IGRTR? X 100>
+  result = call_routine zil_context, :IGRTR?, [:X, 100]
+
+  assert.equal! zil_context.locals[:X], 100, 'X should have increased by 1'
+  assert.false! result, 'Should return false since X is not greater than 100'
+
+  # <IGRTR? X 100>
+  result = call_routine zil_context, :IGRTR?, [:X, 100]
+  assert.equal! zil_context.locals[:X], 101, 'X should have increased by 1'
+  assert.true! result, 'Should return true since X is greater than 100'
+
+  assert_function_error_with_argument_counts! zil_context, :IGRTR?, [0, 1, 3]
+end

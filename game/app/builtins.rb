@@ -559,3 +559,12 @@ ZIL_BUILTINS[:"INSERT-FILE"] = define_for_evaled_arguments { |arguments, context
     eval_zil expression, context
   end
 }
+
+ZIL_BUILTINS[:IGRTR?] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count! arguments, 2
+
+  variable_name, value_to_compare = arguments
+  context.locals[variable_name] += 1
+
+  context.locals[variable_name] > value_to_compare
+}
