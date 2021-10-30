@@ -12,6 +12,8 @@ jobs:
     strategy:
       matrix:
         version:
+          - '2.26'
+          - '2.26-pro'
           - 'current'
           - 'current-pro'
 
