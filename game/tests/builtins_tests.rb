@@ -914,7 +914,7 @@ def test_builtin_empty(args, assert)
   # <EMPTY? ,EMPTYTABLE>
   result = call_routine zil_context, :EMPTY?, [form(:LVAL, :EMPTYTABLE)]
 
-  assert.true! result
+  assert.false! result
 
   # <EMPTY? ,NONEMPTYTABLE>
   result = call_routine zil_context, :EMPTY?, [form(:LVAL, :NONEMPTYTABLE)]
