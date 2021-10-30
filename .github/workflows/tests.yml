@@ -31,4 +31,6 @@ jobs:
           aws s3 cp s3://kf-dragonruby/$DRAGONRUBY_VERSION/dragonruby .
           chmod u+x ./dragonruby
       - name: Run tests
-        run: xvfb-run ./dragonruby game --test tests/main.rb
+        run: |
+          xvfb-run ./dragonruby game --test tests/main.rb | tee test-output.txt
+          grep '0 test(s) failed' test-output.txt # Workaround since dragonruby does not return failed exit status
