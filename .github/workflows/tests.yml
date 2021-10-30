@@ -28,4 +28,4 @@ jobs:
           aws s3 cp s3://kf-dragonruby/$DRAGONRUBY_VERSION/dragonruby .
           chmod u+x ./dragonruby
       - name: Run tests
-        run: xvfb-run ./dragonruby app --test tests/main.rb
+        run: xvfb-run ./dragonruby game --test tests/main.rb
