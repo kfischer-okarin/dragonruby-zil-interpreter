@@ -15,8 +15,8 @@ jobs:
           - '2.26'
           - '2.26-pro'
           # 3.0 Gold Master doesn't work properly atm with Linux and Xvfb
-          # - 'current'
-          # - 'current-pro'
+          - 'current'
+          - 'current-pro'
 
     steps:
       - uses: actions/checkout@v2
