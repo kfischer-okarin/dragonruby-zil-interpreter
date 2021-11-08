@@ -32,5 +32,5 @@ jobs:
           chmod u+x ./dragonruby
       - name: Run tests
         run: |
-          xvfb-run ./dragonruby game --test tests/main.rb | tee test-output.txt
+          SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ./dragonruby game --test tests/main.rb | tee test-output.txt
           grep '0 test(s) failed' test-output.txt # Workaround since dragonruby does not return failed exit status
