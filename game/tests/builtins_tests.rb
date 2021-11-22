@@ -697,11 +697,37 @@ end
 def test_builtin_object(args, assert)
   zil_context = build_zil_context(args)
 
-  # <OBJECT ROOM (HEIGHT 10)>
-  specs = [:ROOM, list(:HEIGHT, 10)]
-  result = call_routine zil_context, :OBJECT, specs
-  assert.equal! zil_context.globals[:ROOM][:name], :ROOM, "Object's name should be ROOM"
-  assert.equal! zil_context.globals[:ROOM][:properties][:HEIGHT], 10, "ROOM's HEIGHT should be 10"
+  # <OBJECT ROOM (IN HOUSE) (HEIGHT 10) (FLAGS A B) (IN TO BASEMENT)>
+  call_routine zil_context, :OBJECT, [
+    :ROOM,
+    list(:IN, :HOUSE),
+    list(:HEIGHT, 10),
+    list(:FLAGS, :A, :B),
+    list(:IN, :TO, :BASEMENT)
+  ]
+
+  assert.equal! zil_context.globals[:ROOM], {
+    name: :ROOM,
+    location: :HOUSE,
+    properties: {
+      HEIGHT: 10,
+      FLAGS: [:A, :B],
+      IN: [:TO, :BASEMENT]
+    }
+  }
+
+  assert.equal! zil_context.globals[:A], :A, 'Did not set used flag A as global variable'
+  assert.equal! zil_context.globals[:B], :B, 'Did not set used flag B as global variable'
+
+  # <OBJECT HOUSE>
+  call_routine zil_context, :OBJECT, [:HOUSE]
+
+  assert.equal! zil_context.globals[:HOUSE], {
+    name: :HOUSE,
+    properties: {
+      FLAGS: []
+    }
+  }
 end
 
 def test_builtin_itable(args, assert)
@@ -766,7 +792,7 @@ def test_builtin_get(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.locals[:THETABLE] = [1, 0, 2, 0, 3, 0]
-  # <GET ,THETABLE 2>
+  # <GET .THETABLE 2>
   result = call_routine zil_context, :GET, [form(:LVAL, :THETABLE), 2]
 
   assert.equal! result, 3
@@ -778,7 +804,7 @@ def test_builtin_put(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.locals[:THETABLE] = [1, 0, 2, 0, 3, 0]
-  # <PUT ,THETABLE 1 99>
+  # <PUT .THETABLE 1 99>
   result = call_routine zil_context, :PUT, [form(:LVAL, :THETABLE), 1, 99]
 
   assert.equal! result, [1, 0, 99, 0, 3, 0]
@@ -791,7 +817,7 @@ def test_builtin_getb(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.locals[:THETABLE] = [1, 2, 3]
-  # <GETB ,THETABLE 2>
+  # <GETB .THETABLE 2>
   result = call_routine zil_context, :GETB, [form(:LVAL, :THETABLE), 2]
 
   assert.equal! result, 3
@@ -803,7 +829,7 @@ def test_builtin_putb(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.locals[:THETABLE] = [1, 2, 3]
-  # <PUTB ,THETABLE 1 99>
+  # <PUTB .THETABLE 1 99>
   result = call_routine zil_context, :PUTB, [form(:LVAL, :THETABLE), 1, 99]
 
   assert.equal! result, [1, 99, 3]
@@ -816,7 +842,7 @@ def test_builtin_nth(args, assert)
   zil_context = build_zil_context(args)
 
   zil_context.locals[:THETABLE] = [1, 2, 3]
-  # <NTH ,THETABLE 2>
+  # <NTH .THETABLE 2>
   result = call_routine zil_context, :NTH, [form(:LVAL, :THETABLE), 2]
 
   assert.equal! result, 2
@@ -829,20 +855,20 @@ def test_builtin_rest(args, assert)
 
   zil_context.locals[:THETABLE] = [1, 2, 3, 4, 5]
 
-  # <PUTB <REST ,THETABLE 2> 1 99>
+  # <PUTB <REST .THETABLE 2> 1 99>
   result = call_routine zil_context, :PUTB, [form(:REST, form(:LVAL, :THETABLE), 2), 1, 99]
 
   assert.equal! result.to_a, [3, 99, 5]
   assert.equal! zil_context.locals[:THETABLE], [1, 2, 3, 99, 5]
 
-  # <GETB <REST ,THETABLE 2> 2>
+  # <GETB <REST .THETABLE 2> 2>
   result = call_routine zil_context, :GETB, [form(:REST, form(:LVAL, :THETABLE), 2), 2]
 
   assert.equal! result, 5
 
   zil_context.locals[:THETABLE] = [1, 2, 3, 4, 5]
 
-  # <PUTB <REST <REST ,THETABLE 2>> 1 100>
+  # <PUTB <REST <REST .THETABLE 2>> 1 100>
   result = call_routine zil_context, :PUTB, [
     form(:REST, form(:REST, form(:LVAL, :THETABLE), 2)),
     1,
@@ -852,7 +878,7 @@ def test_builtin_rest(args, assert)
   assert.equal! result.to_a, [4, 100]
   assert.equal! zil_context.locals[:THETABLE], [1, 2, 3, 4, 100]
 
-  # <GETB <REST <REST ,THETABLE> 2> 0>
+  # <GETB <REST <REST .THETABLE> 2> 0>
   result = call_routine zil_context, :GETB, [
     form(:REST, form(:REST, form(:LVAL, :THETABLE)), 2),
     0
@@ -860,12 +886,12 @@ def test_builtin_rest(args, assert)
 
   assert.equal! result, 4
 
-  # <REST ,THETABLE 5>
+  # <REST .THETABLE 5>
   result = call_routine zil_context, :REST, [form(:LVAL, :THETABLE), 5]
 
   assert.equal! result.to_a, []
 
-  # <REST ,THETABLE 6>
+  # <REST .THETABLE 6>
   call_routine zil_context, :REST, [form(:LVAL, :THETABLE), 6]
   raise 'No FunctionError was raised when RESTing past last element'
 rescue FunctionError
@@ -879,7 +905,7 @@ def test_builtin_back(args, assert)
 
   zil_context.locals[:THETABLE] = [1, 2, 3, 4, 5]
 
-  # <PUTB <BACK <REST ,THETABLE 2>> 1 99>
+  # <PUTB <BACK <REST .THETABLE 2>> 1 99>
   result = call_routine zil_context, :PUTB, [
     form(:BACK, form(:REST, form(:LVAL, :THETABLE), 2)),
     1,
@@ -889,7 +915,7 @@ def test_builtin_back(args, assert)
   assert.equal! result.to_a, [2, 99, 4, 5]
   assert.equal! zil_context.locals[:THETABLE], [1, 2, 99, 4, 5]
 
-  # <GETB <BACK <REST ,THETABLE 2> 2> 2>
+  # <GETB <BACK <REST .THETABLE 2> 2> 2>
   result = call_routine zil_context, :GETB, [
     form(:BACK, form(:REST, form(:LVAL, :THETABLE), 2), 2),
     1
@@ -911,12 +937,12 @@ def test_builtin_empty(args, assert)
   zil_context.locals[:EMPTYTABLE] = []
   zil_context.locals[:NONEMPTYTABLE] = [1]
 
-  # <EMPTY? ,EMPTYTABLE>
+  # <EMPTY? .EMPTYTABLE>
   result = call_routine zil_context, :EMPTY?, [form(:LVAL, :EMPTYTABLE)]
 
   assert.true! result
 
-  # <EMPTY? ,NONEMPTYTABLE>
+  # <EMPTY? .NONEMPTYTABLE>
   result = call_routine zil_context, :EMPTY?, [form(:LVAL, :NONEMPTYTABLE)]
 
   assert.false! result
@@ -929,12 +955,12 @@ def test_builtin_length(args, assert)
 
   zil_context.locals[:SOMETABLE] = [3, 7, 12]
 
-  # <LENGTH ,SOMETABLE>
+  # <LENGTH .SOMETABLE>
   result = call_routine zil_context, :LENGTH, [form(:LVAL, :SOMETABLE)]
 
   assert.equal! result, 3
 
-  # <LENGTH <REST ,SOMETABLE>>
+  # <LENGTH <REST .SOMETABLE>>
   result = call_routine zil_context, :LENGTH, [form(:REST, form(:LVAL, :SOMETABLE))]
 
   assert.equal! result, 2
@@ -947,12 +973,12 @@ def test_builtin_length_less_than_or_equal(args, assert)
 
   zil_context.locals[:SOMETABLE] = [3, 7, 12]
 
-  # <LENGTH? ,SOMETABLE 3>
+  # <LENGTH? .SOMETABLE 3>
   result = call_routine zil_context, :LENGTH?, [form(:LVAL, :SOMETABLE), 3]
 
   assert.true! result
 
-  # <LENGTH? ,SOMETABLE 2>
+  # <LENGTH? .SOMETABLE 2>
   result = call_routine zil_context, :LENGTH?, [form(:LVAL, :SOMETABLE), 2]
 
   assert.false! result
@@ -965,23 +991,284 @@ def test_builtin_putrest(args, assert)
 
   zil_context.locals[:THETABLE] = [1, 2, 3, 4, 5]
 
-  # <PUTREST ,THETABLE (1 1 1)>
+  # <PUTREST .THETABLE (1 1 1)>
   result = call_routine zil_context, :PUTREST, [form(:LVAL, :THETABLE), list(1, 1, 1)]
 
   assert.equal! result.to_a, [1, 1, 1, 1]
   assert.equal! zil_context.locals[:THETABLE], [1, 1, 1, 1]
 
-  # <PUTREST <REST ,THETABLE> (99 98)>
+  # <PUTREST <REST .THETABLE> (99 98)>
   result = call_routine zil_context, :PUTREST, [form(:REST, form(:LVAL, :THETABLE)), list(99, 98)]
 
   assert.equal! result.to_a, [1, 99, 98]
   assert.equal! zil_context.locals[:THETABLE], [1, 1, 99, 98]
 
-  # <PUTREST <REST ,THETABLE 3> (50)>
+  # <PUTREST <REST .THETABLE 3> (50)>
   result = call_routine zil_context, :PUTREST, [form(:REST, form(:LVAL, :THETABLE), 3), list(50)]
 
   assert.equal! result.to_a, [98, 50]
   assert.equal! zil_context.locals[:THETABLE], [1, 1, 99, 98, 50]
 
   assert_function_error_with_argument_counts! zil_context, :PUTREST, [0, 1, 3]
+end
+
+def test_builtin_global(args, assert)
+  zil_context = build_zil_context(args)
+
+  # <GLOBAL PLAYER <>>
+  result = call_routine zil_context, :GLOBAL, [:PLAYER, form]
+
+  assert.equal! result, false
+  assert.equal! zil_context.globals[:PLAYER], false
+
+  assert_function_error_with_argument_counts! zil_context, :GLOBAL, [0, 1, 3]
+end
+
+def test_builtin_constant(args, assert)
+  zil_context = build_zil_context(args)
+
+  # <CONSTANT C-TICK 1>
+  result = call_routine zil_context, :CONSTANT, [:"C-TICK", 1]
+
+  assert.equal! result, 1
+  assert.equal! zil_context.globals[:"C-TICK"], 1
+
+  assert_function_error_with_argument_counts! zil_context, :CONSTANT, [0, 1, 3]
+end
+
+def test_builtin_equal(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.locals[:THELIST] = [1, 2, 3]
+
+  # <==? 4 4>
+  result = call_routine zil_context, :"==?", [4, 4]
+
+  assert.true! result, 'Same values should be equal'
+
+  # <==? .THELIST .THELIST>
+  result = call_routine zil_context, :"==?", [form(:LVAL, :THELIST), form(:LVAL, :THELIST)]
+
+  assert.true! result, 'Same structured objects should be equal'
+
+  # <==? .THELIST (1 2 3)>
+  result = call_routine zil_context, :"==?", [form(:LVAL, :THELIST), list(1, 2, 3)]
+
+  assert.false! result, 'Different structured objects with same content should not be equal'
+
+  # <==? <REST .THELIST> <REST .THELIST>>
+  result = call_routine zil_context, :"==?", [
+    form(:REST, form(:LVAL, :THELIST)),
+    form(:REST, form(:LVAL, :THELIST))
+  ]
+
+  assert.true! result, 'REST of same list with same offset should be equal'
+
+  # <==? 4 5 4>
+  result = call_routine zil_context, :"==?", [4, 5, 4]
+
+  assert.true! result, 'Should return true since first argument is equal to one of the other arguments'
+
+  assert_function_error_with_argument_counts! zil_context, :"==?", [0, 1]
+end
+
+def test_builtin_equal_alternative(args, assert)
+  zil_context = build_zil_context(args)
+
+  # <EQUAL? 4 4>
+  result = call_routine zil_context, :EQUAL?, [4, 4]
+
+  assert.true! result, 'Same values should be equal'
+
+  assert_function_error_with_argument_counts! zil_context, :EQUAL?, [0, 1]
+end
+
+def test_builtin_not_equal(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.locals[:THELIST] = [1, 2, 3]
+
+  # <N==? 4 4>
+  result = call_routine zil_context, :"N==?", [4, 4]
+
+  assert.false! result, 'Same values should return false'
+
+  # <N==? .THELIST .THELIST>
+  result = call_routine zil_context, :"N==?", [form(:LVAL, :THELIST), form(:LVAL, :THELIST)]
+
+  assert.false! result, 'Same structured objects should return false'
+
+  # <N==? .THELIST (1 2 3)>
+  result = call_routine zil_context, :"N==?", [form(:LVAL, :THELIST), list(1, 2, 3)]
+
+  assert.true! result, 'Different structured objects with same content should return true'
+
+  # <N==? <REST .THELIST> <REST .THELIST>>
+  result = call_routine zil_context, :"N==?", [
+    form(:REST, form(:LVAL, :THELIST)),
+    form(:REST, form(:LVAL, :THELIST))
+  ]
+
+  assert.false! result, 'REST of same list with same offset should return false'
+
+  # <N==? 4 5 4>
+  result = call_routine zil_context, :"N==?", [4, 5, 4]
+
+  assert.false! result, 'Should return false since first argument is equal to one of the other arguments'
+
+  assert_function_error_with_argument_counts! zil_context, :"N==?", [0, 1]
+end
+
+def test_builtin_loc(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.globals[:CHEST] = {
+    name: :CHEST,
+    location: :ROOM,
+    properties: {}
+  }
+
+  zil_context.globals[:KEY] = {
+    name: :KEY,
+    location: :CHEST,
+    properties: {}
+  }
+
+  # <LOC ,KEY>
+  result = call_routine zil_context, :LOC, [form(:GVAL, :KEY)]
+
+  assert.equal! result, zil_context.globals[:CHEST], 'Location should be CHEST object'
+
+  assert_function_error_with_argument_counts! zil_context, :LOC, [0, 2]
+end
+
+def test_builtin_in(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.globals[:CHEST] = {
+    name: :CHEST,
+    location: :ROOM,
+    properties: {}
+  }
+
+  zil_context.globals[:KEY] = {
+    name: :KEY,
+    location: :CHEST,
+    properties: {}
+  }
+
+  # <IN? ,KEY ,CHEST>
+  result = call_routine zil_context, :IN?, [form(:GVAL, :KEY), form(:GVAL, :CHEST)]
+
+  assert.true! result, 'KEY should be in CHEST'
+
+  assert_function_error_with_argument_counts! zil_context, :IN?, [0, 1, 3]
+end
+
+def test_builtin_fset(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.globals[:WEAPONBIT] = :WEAPONBIT
+  zil_context.globals[:AXE] = {
+    name: :AXE,
+    location: :TROLL,
+    properties: {
+      FLAGS: []
+    }
+  }
+
+  # <FSET ,AXE ,WEAPONBIT>
+  call_routine zil_context, :FSET, [form(:GVAL, :AXE), form(:GVAL, :WEAPONBIT)]
+
+  assert.equal! zil_context.globals[:AXE][:properties][:FLAGS], [:WEAPONBIT], 'AXE flags should contain WEAPONBIT'
+
+  # Second time does not add it again
+  call_routine zil_context, :FSET, [form(:GVAL, :AXE), form(:GVAL, :WEAPONBIT)]
+
+  assert.equal! zil_context.globals[:AXE][:properties][:FLAGS], [:WEAPONBIT], 'AXE flags should contain only one WEAPONBIT'
+
+  assert_function_error_with_argument_counts! zil_context, :FSET, [0, 1, 3]
+end
+
+def test_builtin_fclear(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.globals[:WEAPONBIT] = :WEAPONBIT
+  zil_context.globals[:AXE] = {
+    name: :AXE,
+    location: :TROLL,
+    properties: {
+      FLAGS: [:WEAPONBIT, :TAKEBIT]
+    }
+  }
+
+  # <FCLEAR ,AXE ,WEAPONBIT>
+  call_routine zil_context, :FCLEAR, [form(:GVAL, :AXE), form(:GVAL, :WEAPONBIT)]
+
+  assert.equal! zil_context.globals[:AXE][:properties][:FLAGS], [:TAKEBIT], 'AXE flags should not contain WEAPONBIT'
+
+  # Second time does not do anything
+  call_routine zil_context, :FCLEAR, [form(:GVAL, :AXE), form(:GVAL, :WEAPONBIT)]
+
+  assert.equal! zil_context.globals[:AXE][:properties][:FLAGS], [:TAKEBIT], 'AXE flags should not change'
+
+  assert_function_error_with_argument_counts! zil_context, :FCLEAR, [0, 1, 3]
+end
+
+def test_builtin_fset_check(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.globals[:WEAPONBIT] = :WEAPONBIT
+  zil_context.globals[:FOODBIT] = :FOODBIT
+  zil_context.globals[:AXE] = {
+    name: :AXE,
+    location: :TROLL,
+    properties: {
+      FLAGS: [:WEAPONBIT]
+    }
+  }
+
+  # <FSET? ,AXE ,WEAPONBIT>
+  result = call_routine zil_context, :FSET?, [form(:GVAL, :AXE), form(:GVAL, :WEAPONBIT)]
+
+  assert.true! result, 'Should return true since flag is set'
+
+  # <FSET? ,AXE ,FOODBIT>
+  result = call_routine zil_context, :FSET?, [form(:GVAL, :AXE), form(:GVAL, :FOODBIT)]
+
+  assert.false! result, 'Should return false since flag is not set'
+
+  assert_function_error_with_argument_counts! zil_context, :FSET?, [0, 1, 3]
+end
+
+def test_builtin_insert_file(args, assert)
+  zil_context = build_zil_context(args)
+  zil_context.parser_work_dir = 'tests/'
+
+  # <INSERT-FILE "TESTSCRIPT" T>
+  call_routine zil_context, :"INSERT-FILE", ['TESTSCRIPT', true]
+
+  assert.true! zil_context.globals[:"TEST-ADD-TWELVE"].is_a?(Method), 'Global var TEST-ADD-TWELVE should contain a routine'
+  assert.equal! zil_context.globals[:"TEST-ADD-RESULT"], 42, 'Expected global var TEST-ADD-RESULT to have value 42'
+
+  assert_function_error_with_argument_counts! zil_context, :"INSERT-FILE", [0, 3]
+end
+
+def test_builtin_igrtr(args, assert)
+  zil_context = build_zil_context(args)
+
+  zil_context.locals[:X] = 99
+
+  # <IGRTR? X 100>
+  result = call_routine zil_context, :IGRTR?, [:X, 100]
+
+  assert.equal! zil_context.locals[:X], 100, 'X should have increased by 1'
+  assert.false! result, 'Should return false since X is not greater than 100'
+
+  # <IGRTR? X 100>
+  result = call_routine zil_context, :IGRTR?, [:X, 100]
+  assert.equal! zil_context.locals[:X], 101, 'X should have increased by 1'
+  assert.true! result, 'Should return true since X is greater than 100'
+
+  assert_function_error_with_argument_counts! zil_context, :IGRTR?, [0, 1, 3]
 end

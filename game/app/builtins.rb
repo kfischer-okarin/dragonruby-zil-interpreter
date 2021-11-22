@@ -146,6 +146,10 @@ ZIL_BUILTINS[:SETG] = define_for_evaled_arguments { |arguments, context|
   context.globals[var_atom] = arguments[1]
 }
 
+ZIL_BUILTINS[:GLOBAL] = ZIL_BUILTINS[:SETG]
+
+ZIL_BUILTINS[:CONSTANT] = ZIL_BUILTINS[:SETG]
+
 ZIL_BUILTINS[:BAND] = define_for_evaled_arguments { |arguments|
   expect_argument_count!(arguments, 2)
   arguments[0] & arguments[1]
@@ -282,15 +286,33 @@ ZIL_BUILTINS[:OBJECT] = define_for_evaled_arguments { |arguments, context|
 
   object_name, *object_properties = arguments
 
-  object = { properties: {} }
-  object[:name] = object_name
+  object = {
+    name: object_name,
+    properties: {
+      FLAGS: []
+    }
+  }
 
   object_properties.each do |property|
-    raise FunctionError, "OBJECT properties require a name and values!" unless property.length > 1
+    raise FunctionError, 'OBJECT properties require a name and values!' unless property.length > 1
 
     property_name, *property_values = property
 
-    object[:properties][property_name] = property_values.length == 1 ? property_values[0] : property_values
+    if property_name == :IN && property_values[0] != :TO
+      object[:location] = property_values[0]
+    else
+      object[:properties][property_name] = property_values.length == 1 ? property_values[0] : property_values
+    end
+  end
+
+  if object[:properties].key? :FLAGS
+    object[:properties][:FLAGS].each do |flag|
+      # Set global variable named like the flag to the symbol named like the flag
+      # Since flags are checked/set via GVAL/, those global variables must be set
+      # And since the flags are just stored as the symbols themselves, the value of the global var
+      # representing the flag must also be the same symbol
+      context.globals[flag] = flag
+    end
   end
 
   context.globals[object_name] = object
@@ -463,3 +485,86 @@ ZIL_BUILTINS[:GASSIGNED?] = lambda { |arguments, context|
   context.globals.key? var_atom
 }
 
+ZIL_BUILTINS[:"==?"] = define_for_evaled_arguments { |arguments|
+  expect_minimum_argument_count! arguments, 2
+
+  left, *others = arguments
+
+  others.any? { |right|
+    if left.is_a? ZIL::ArrayWithOffset
+      next right.is_a?(ZIL::ArrayWithOffset) && left.original_array.equal?(right.original_array) &&
+        left.offset == right.offset
+    end
+
+    left.equal? right
+  }
+}
+
+ZIL_BUILTINS[:EQUAL?] = ZIL_BUILTINS[:"==?"]
+
+ZIL_BUILTINS[:"N==?"] = lambda { |arguments, context|
+  !ZIL_BUILTINS[:"==?"].call(arguments, context)
+}
+
+ZIL_BUILTINS[:LOC] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count! arguments, 1
+
+  object = arguments[0]
+
+  context.globals[object[:location]]
+}
+
+ZIL_BUILTINS[:IN?] = lambda { |arguments, context|
+  expect_argument_count! arguments, 2
+
+  object = arguments[0]
+  container = eval_zil(arguments[1], context)
+
+  ZIL_BUILTINS[:LOC].call([object], context) == container
+}
+
+ZIL_BUILTINS[:FSET] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count! arguments, 2
+
+  object, flag = arguments
+
+  properties = object[:properties]
+  properties[:FLAGS] << flag unless properties[:FLAGS].include? flag
+}
+
+ZIL_BUILTINS[:FCLEAR] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count! arguments, 2
+
+  object, flag = arguments
+
+  properties = object[:properties]
+  properties[:FLAGS].delete flag
+}
+
+ZIL_BUILTINS[:FSET?] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count! arguments, 2
+
+  object, flag = arguments
+
+  object[:properties][:FLAGS].include? flag
+}
+
+ZIL_BUILTINS[:"INSERT-FILE"] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count_in_range! arguments, (1..2)
+
+  filename = arguments[0]
+
+  parsed = Parser.parse_file "#{context.parser_work_dir}#{filename.downcase}.zil"
+  parsed.each do |expression|
+    eval_zil expression, context
+  end
+}
+
+ZIL_BUILTINS[:IGRTR?] = define_for_evaled_arguments { |arguments, context|
+  expect_argument_count! arguments, 2
+
+  variable_name, value_to_compare = arguments
+  context.locals[variable_name] += 1
+
+  context.locals[variable_name] > value_to_compare
+}
